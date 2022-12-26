@@ -1,14 +1,14 @@
 ﻿using UnityEngine;
 using UnityEngine.Rendering;
 
-namespace RP.Runtime
+namespace RP.Runtime.Data
 {
     [CreateAssetMenu(menuName = "Rendering/CreateRPPipeline")]
     public class RPRenderPipelineAsset : RenderPipelineAsset
     {
         protected override RenderPipeline CreatePipeline()
         {
-            return null;
+            return new RPRenderPipeline();
         }
     }
 }
