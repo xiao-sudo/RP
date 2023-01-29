@@ -34,6 +34,8 @@ namespace RP.Runtime
             DrawTransparent();
             
             DrawUnsupportedShaders();
+            
+            DrawGizmos();
 
             Submit();
         }

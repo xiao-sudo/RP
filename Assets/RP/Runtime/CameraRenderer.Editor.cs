@@ -1,12 +1,18 @@
 ﻿using UnityEngine;
 using UnityEngine.Rendering;
 
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
+
 namespace RP.Runtime
 {
     public partial class CameraRenderer
     {
         partial void DrawUnsupportedShaders();
-        
+
+        partial void DrawGizmos();
+
 #if UNITY_EDITOR
         private static readonly ShaderTagId[] LEGACY_SHADER_TAG_IDS =
         {
@@ -32,6 +38,15 @@ namespace RP.Runtime
 
             var filtering_settings = FilteringSettings.defaultValue;
             m_Context.DrawRenderers(m_CullingResults, ref drawing_settings, ref filtering_settings);
+        }
+
+        partial void DrawGizmos()
+        {
+            if (Handles.ShouldRenderGizmos())
+            {
+                m_Context.DrawGizmos(m_Camera, GizmoSubset.PreImageEffects);
+                m_Context.DrawGizmos(m_Camera, GizmoSubset.PostImageEffects);
+            }
         }
 #endif
     }
