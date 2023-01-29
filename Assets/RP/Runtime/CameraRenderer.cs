@@ -74,7 +74,13 @@ namespace RP.Runtime
 
         private void DrawOpaque()
         {
-            var drawing_settings = new DrawingSettings(UNLIT_SHADER_TAG_ID, new SortingSettings(m_Camera));
+            var drawing_settings = new DrawingSettings(UNLIT_SHADER_TAG_ID,
+                new SortingSettings(m_Camera) { criteria = SortingCriteria.CommonOpaque })
+            {
+                enableInstancing = true,
+                enableDynamicBatching = false
+            };
+
             var filtering_settings = new FilteringSettings(RenderQueueRange.opaque);
 
             m_Context.DrawRenderers(m_CullingResults, ref drawing_settings, ref filtering_settings);
@@ -87,12 +93,9 @@ namespace RP.Runtime
 
         private void DrawTransparent()
         {
-            var sorting_settings = new SortingSettings
-            {
-                criteria = SortingCriteria.CommonTransparent
-            };
-
-            var drawing_settings = new DrawingSettings(UNLIT_SHADER_TAG_ID, sorting_settings);
+            var drawing_settings = new DrawingSettings(UNLIT_SHADER_TAG_ID,
+                new SortingSettings(m_Camera) { criteria = SortingCriteria.CommonTransparent });
+            
             var filtering_settings = new FilteringSettings(RenderQueueRange.transparent);
 
             m_Context.DrawRenderers(m_CullingResults, ref drawing_settings, ref filtering_settings);
