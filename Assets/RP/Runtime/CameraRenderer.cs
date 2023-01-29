@@ -6,6 +6,7 @@ namespace RP.Runtime
     public class CameraRenderer
     {
         private const string kBufferName = "RP Render Camera";
+        private static readonly ShaderTagId UNLIT_SHADER_TAG_ID = new ShaderTagId("SRPDefaultUnlit");
 
         private ScriptableRenderContext m_Context;
         private Camera m_Camera;
@@ -26,19 +27,23 @@ namespace RP.Runtime
 
             Setup();
 
+            DrawOpaque();
+
             DrawSky();
+            
+            DrawTransparent();
 
             Submit();
         }
 
         private void Setup()
         {
-            m_CommandBuffer.BeginSample(kBufferName);
-
             // set rt and clear
             m_CommandBuffer.SetRenderTarget(BuiltinRenderTextureType.CameraTarget);
             m_CommandBuffer.ClearRenderTarget(true, true, Color.clear);
 
+            m_CommandBuffer.BeginSample(kBufferName);
+            
             ExecuteBuffer();
             m_Context.SetupCameraProperties(m_Camera);
         }
@@ -54,9 +59,30 @@ namespace RP.Runtime
             return false;
         }
 
+        private void DrawOpaque()
+        {
+            var drawing_settings = new DrawingSettings(UNLIT_SHADER_TAG_ID, new SortingSettings(m_Camera));
+            var filtering_settings = new FilteringSettings(RenderQueueRange.opaque);
+
+            m_Context.DrawRenderers(m_CullingResults, ref drawing_settings, ref filtering_settings);
+        }
+
         private void DrawSky()
         {
             m_Context.DrawSkybox(m_Camera);
+        }
+
+        private void DrawTransparent()
+        {
+            var sorting_settings = new SortingSettings
+            {
+                criteria = SortingCriteria.CommonTransparent
+            };
+            
+            var drawing_settings = new DrawingSettings(UNLIT_SHADER_TAG_ID, sorting_settings);
+            var filtering_settings = new FilteringSettings(RenderQueueRange.transparent);
+
+            m_Context.DrawRenderers(m_CullingResults, ref drawing_settings, ref filtering_settings);
         }
 
 
