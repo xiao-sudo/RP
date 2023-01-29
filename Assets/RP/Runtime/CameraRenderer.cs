@@ -22,8 +22,10 @@ namespace RP.Runtime
             m_Context = context;
             m_Camera = camera;
 
+            PrepareBuffer();
+
             PrepareForSceneWindow();
-            
+
             if (!Cull())
                 return;
 
@@ -34,9 +36,9 @@ namespace RP.Runtime
             DrawSky();
 
             DrawTransparent();
-            
+
             DrawUnsupportedShaders();
-            
+
             DrawGizmos();
 
             Submit();
@@ -44,14 +46,19 @@ namespace RP.Runtime
 
         private void Setup()
         {
-            // set rt and clear
-            m_CommandBuffer.SetRenderTarget(BuiltinRenderTextureType.CameraTarget);
-            m_CommandBuffer.ClearRenderTarget(true, true, Color.clear);
+            // Main Camera RT Clear, Second Camera GL Draw Clear
+            m_Context.SetupCameraProperties(m_Camera);
+
+            var clear_flags = m_Camera.clearFlags;
+            var clear_depth = clear_flags <= CameraClearFlags.Depth;
+            var clear_color = clear_flags == CameraClearFlags.Color;
+
+            m_CommandBuffer.ClearRenderTarget(clear_depth, clear_color,
+                clear_color ? m_Camera.backgroundColor.linear : Color.clear);
 
             m_CommandBuffer.BeginSample(kBufferName);
-            
+
             ExecuteBuffer();
-            m_Context.SetupCameraProperties(m_Camera);
         }
 
         private bool Cull()
@@ -84,7 +91,7 @@ namespace RP.Runtime
             {
                 criteria = SortingCriteria.CommonTransparent
             };
-            
+
             var drawing_settings = new DrawingSettings(UNLIT_SHADER_TAG_ID, sorting_settings);
             var filtering_settings = new FilteringSettings(RenderQueueRange.transparent);
 

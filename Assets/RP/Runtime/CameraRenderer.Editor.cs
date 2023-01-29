@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEngine.Profiling;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -14,6 +15,8 @@ namespace RP.Runtime
         partial void DrawGizmos();
 
         partial void PrepareForSceneWindow();
+
+        partial void PrepareBuffer();
 
 #if UNITY_EDITOR
         private static readonly ShaderTagId[] LEGACY_SHADER_TAG_IDS =
@@ -53,10 +56,20 @@ namespace RP.Runtime
 
         partial void PrepareForSceneWindow()
         {
-            if(CameraType.SceneView == m_Camera.cameraType)
+            if (CameraType.SceneView == m_Camera.cameraType)
                 ScriptableRenderContext.EmitWorldGeometryForSceneView(m_Camera);
         }
-        
+
+        partial void PrepareBuffer()
+        {
+            Profiler.BeginSample("Editor Only");
+            m_CommandBuffer.name = SampleName = m_Camera.name;
+            Profiler.EndSample();
+        }
+
+        private string SampleName { get; set; }
+#else
+        const string SampleName = kBufferName;
 #endif
     }
 }
