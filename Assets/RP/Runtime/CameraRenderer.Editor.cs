@@ -13,6 +13,8 @@ namespace RP.Runtime
 
         partial void DrawGizmos();
 
+        partial void PrepareForSceneWindow();
+
 #if UNITY_EDITOR
         private static readonly ShaderTagId[] LEGACY_SHADER_TAG_IDS =
         {
@@ -48,6 +50,13 @@ namespace RP.Runtime
                 m_Context.DrawGizmos(m_Camera, GizmoSubset.PostImageEffects);
             }
         }
+
+        partial void PrepareForSceneWindow()
+        {
+            if(CameraType.SceneView == m_Camera.cameraType)
+                ScriptableRenderContext.EmitWorldGeometryForSceneView(m_Camera);
+        }
+        
 #endif
     }
 }

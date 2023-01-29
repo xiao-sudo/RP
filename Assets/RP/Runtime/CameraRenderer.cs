@@ -22,6 +22,8 @@ namespace RP.Runtime
             m_Context = context;
             m_Camera = camera;
 
+            PrepareForSceneWindow();
+            
             if (!Cull())
                 return;
 
