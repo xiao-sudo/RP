@@ -3,7 +3,7 @@ using UnityEngine.Rendering;
 
 namespace RP.Runtime
 {
-    public class CameraRenderer
+    public partial class CameraRenderer
     {
         private const string kBufferName = "RP Render Camera";
         private static readonly ShaderTagId UNLIT_SHADER_TAG_ID = new ShaderTagId("SRPDefaultUnlit");
@@ -30,8 +30,10 @@ namespace RP.Runtime
             DrawOpaque();
 
             DrawSky();
-            
+
             DrawTransparent();
+            
+            DrawUnsupportedShaders();
 
             Submit();
         }
