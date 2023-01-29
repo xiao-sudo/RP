@@ -7,6 +7,11 @@ namespace RP.Runtime
     {
         private readonly CameraRenderer m_CameraRenderer = new CameraRenderer();
 
+        public RPRenderPipeline()
+        {
+            GraphicsSettings.useScriptableRenderPipelineBatching = true;
+        }
+
         protected override void Render(ScriptableRenderContext context, Camera[] cameras)
         {
             foreach (var camera in cameras)
