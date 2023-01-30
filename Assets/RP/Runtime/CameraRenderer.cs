@@ -7,10 +7,13 @@ namespace RP.Runtime
     {
         private const string kBufferName = "RP Render Camera";
         private static readonly ShaderTagId UNLIT_SHADER_TAG_ID = new ShaderTagId("SRPDefaultUnlit");
+        private static readonly ShaderTagId LIT_SHADER_TAG_ID = new ShaderTagId("RPLit");
 
         private ScriptableRenderContext m_Context;
         private Camera m_Camera;
         private CullingResults m_CullingResults;
+        private DrawingSettings m_DrawingSettings;
+        private SortingSettings m_SortingSettings;
 
         private readonly CommandBuffer m_CommandBuffer = new CommandBuffer()
         {
@@ -30,13 +33,13 @@ namespace RP.Runtime
             if (!Cull())
                 return;
 
-            Setup();
+            Setup(use_gpu_instancing, use_dynamic_batching);
 
-            DrawOpaque(use_gpu_instancing, use_dynamic_batching);
+            DrawOpaque();
 
             DrawSky();
 
-            DrawTransparent(use_gpu_instancing, use_dynamic_batching);
+            DrawTransparent();
 
             DrawUnsupportedShaders();
 
@@ -45,8 +48,18 @@ namespace RP.Runtime
             Submit();
         }
 
-        private void Setup()
+        private void Setup(bool use_gpu_instancing, bool use_dynamic_batching)
         {
+            m_SortingSettings = new SortingSettings(m_Camera);
+
+            m_DrawingSettings = new DrawingSettings(UNLIT_SHADER_TAG_ID, m_SortingSettings)
+            {
+                enableInstancing = use_gpu_instancing,
+                enableDynamicBatching = use_dynamic_batching
+            };
+
+            m_DrawingSettings.SetShaderPassName(1, LIT_SHADER_TAG_ID);
+
             // Main Camera RT Clear, Second Camera GL Draw Clear
             m_Context.SetupCameraProperties(m_Camera);
 
@@ -73,18 +86,14 @@ namespace RP.Runtime
             return false;
         }
 
-        private void DrawOpaque(bool use_gpu_instancing, bool use_dynamic_batching)
+        private void DrawOpaque()
         {
-            var drawing_settings = new DrawingSettings(UNLIT_SHADER_TAG_ID,
-                new SortingSettings(m_Camera) { criteria = SortingCriteria.CommonOpaque })
-            {
-                enableInstancing = use_gpu_instancing,
-                enableDynamicBatching = use_dynamic_batching
-            };
+            m_SortingSettings.criteria = SortingCriteria.CommonOpaque;
+            m_DrawingSettings.sortingSettings = m_SortingSettings;
 
             var filtering_settings = new FilteringSettings(RenderQueueRange.opaque);
 
-            m_Context.DrawRenderers(m_CullingResults, ref drawing_settings, ref filtering_settings);
+            m_Context.DrawRenderers(m_CullingResults, ref m_DrawingSettings, ref filtering_settings);
         }
 
         private void DrawSky()
@@ -92,18 +101,14 @@ namespace RP.Runtime
             m_Context.DrawSkybox(m_Camera);
         }
 
-        private void DrawTransparent(bool use_gpu_instancing, bool use_dynamic_batching)
+        private void DrawTransparent()
         {
-            var drawing_settings = new DrawingSettings(UNLIT_SHADER_TAG_ID,
-                new SortingSettings(m_Camera) { criteria = SortingCriteria.CommonTransparent })
-            {
-                enableInstancing = use_gpu_instancing,
-                enableDynamicBatching = use_dynamic_batching
-            };
+            m_SortingSettings.criteria = SortingCriteria.CommonTransparent;
+            m_DrawingSettings.sortingSettings = m_SortingSettings;
 
             var filtering_settings = new FilteringSettings(RenderQueueRange.transparent);
 
-            m_Context.DrawRenderers(m_CullingResults, ref drawing_settings, ref filtering_settings);
+            m_Context.DrawRenderers(m_CullingResults, ref m_DrawingSettings, ref filtering_settings);
         }
 
 
