@@ -9,6 +9,7 @@ SAMPLER(sampler_BaseMap);
 UNITY_INSTANCING_BUFFER_START(UnityPerMaterial)
 UNITY_DEFINE_INSTANCED_PROP(float4, _BaseColor)
 UNITY_DEFINE_INSTANCED_PROP(float4, _BaseMap_ST)
+UNITY_DEFINE_INSTANCED_PROP(float, _Cutoff)
 UNITY_INSTANCING_BUFFER_END(UnityPerMaterial)
 
 struct Attributes
@@ -43,10 +44,16 @@ Varyings UnlitPassVertex(Attributes input)
 half4 UnlitPassFragment(Varyings input) : SV_TARGET
 {
     UNITY_SETUP_INSTANCE_ID(input);
-    float4 base_map = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, input.base_uv);
+    const float4 base_map = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, input.base_uv);
     const float4 base_color = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _BaseColor);
 
-    return base_map * base_color;
+    float4 final_color = base_map * base_color;
+
+    #if defined(_CLIPPING)
+    clip(final_color.w - UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _Cutoff));
+    #endif
+
+    return final_color;
 }
 
 #endif
