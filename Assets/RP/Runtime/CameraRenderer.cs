@@ -17,7 +17,8 @@ namespace RP.Runtime
             name = kBufferName
         };
 
-        public void Render(ScriptableRenderContext context, Camera camera)
+        public void Render(ScriptableRenderContext context, Camera camera, bool use_gpu_instancing,
+            bool use_dynamic_batching)
         {
             m_Context = context;
             m_Camera = camera;
@@ -31,11 +32,11 @@ namespace RP.Runtime
 
             Setup();
 
-            DrawOpaque();
+            DrawOpaque(use_gpu_instancing, use_dynamic_batching);
 
             DrawSky();
 
-            DrawTransparent();
+            DrawTransparent(use_gpu_instancing, use_dynamic_batching);
 
             DrawUnsupportedShaders();
 
@@ -72,13 +73,13 @@ namespace RP.Runtime
             return false;
         }
 
-        private void DrawOpaque()
+        private void DrawOpaque(bool use_gpu_instancing, bool use_dynamic_batching)
         {
             var drawing_settings = new DrawingSettings(UNLIT_SHADER_TAG_ID,
                 new SortingSettings(m_Camera) { criteria = SortingCriteria.CommonOpaque })
             {
-                enableInstancing = true,
-                enableDynamicBatching = false
+                enableInstancing = use_gpu_instancing,
+                enableDynamicBatching = use_dynamic_batching
             };
 
             var filtering_settings = new FilteringSettings(RenderQueueRange.opaque);
@@ -91,11 +92,15 @@ namespace RP.Runtime
             m_Context.DrawSkybox(m_Camera);
         }
 
-        private void DrawTransparent()
+        private void DrawTransparent(bool use_gpu_instancing, bool use_dynamic_batching)
         {
             var drawing_settings = new DrawingSettings(UNLIT_SHADER_TAG_ID,
-                new SortingSettings(m_Camera) { criteria = SortingCriteria.CommonTransparent });
-            
+                new SortingSettings(m_Camera) { criteria = SortingCriteria.CommonTransparent })
+            {
+                enableInstancing = use_gpu_instancing,
+                enableDynamicBatching = use_dynamic_batching
+            };
+
             var filtering_settings = new FilteringSettings(RenderQueueRange.transparent);
 
             m_Context.DrawRenderers(m_CullingResults, ref drawing_settings, ref filtering_settings);
