@@ -2,6 +2,9 @@
 #define  RP_LIT_PASS_INCLUDED
 
 #include "../ShaderLibrary/RPCommon.hlsl"
+#include "../ShaderLibrary/RPSurface.hlsl"
+#include "../ShaderLibrary/RPLight.hlsl"
+#include "../ShaderLibrary/RPLighting.hlsl"
 
 TEXTURE2D(_BaseMap);
 SAMPLER(sampler_BaseMap);
@@ -48,7 +51,22 @@ Varyings LitPassVertex(Attributes input)
 half4 LitPassFragment(Varyings input) : SV_TARGET
 {
     UNITY_SETUP_INSTANCE_ID(input);
-    return half4(normalize(input.normal_ws), 1);
+    const float4 base_map = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, input.base_uv);
+    const float4 base_color = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _BaseColor);
+
+    float4 base = base_map * base_color;
+
+    #if defined(_CLIPPING)
+    clip(final_color.w - UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _Cutoff));
+    #endif
+
+    Surface surface;
+    surface.normal = normalize(input.normal_ws);
+    surface.color = base.xyz;
+    surface.alpha = base.w;
+
+    float3 color = GetLighting(surface);
+    return float4(color, surface.alpha);
 }
 
 #endif
