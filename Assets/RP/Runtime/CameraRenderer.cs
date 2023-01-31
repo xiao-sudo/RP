@@ -20,6 +20,8 @@ namespace RP.Runtime
             name = kBufferName
         };
 
+        private readonly Lighting m_Lighting = new Lighting();
+
         public void Render(ScriptableRenderContext context, Camera camera, bool use_gpu_instancing,
             bool use_dynamic_batching)
         {
@@ -34,7 +36,7 @@ namespace RP.Runtime
                 return;
 
             Setup(use_gpu_instancing, use_dynamic_batching);
-
+            
             DrawOpaque();
 
             DrawSky();
@@ -50,6 +52,8 @@ namespace RP.Runtime
 
         private void Setup(bool use_gpu_instancing, bool use_dynamic_batching)
         {
+            m_Lighting.Setup(m_Context, m_CullingResults);
+            
             m_SortingSettings = new SortingSettings(m_Camera);
 
             m_DrawingSettings = new DrawingSettings(UNLIT_SHADER_TAG_ID, m_SortingSettings)
