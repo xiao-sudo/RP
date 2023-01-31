@@ -16,6 +16,7 @@ namespace RP.Runtime
             m_UseDynamicBatching = use_dynamic_batching;
 
             GraphicsSettings.useScriptableRenderPipelineBatching = use_srp_batcher;
+            GraphicsSettings.lightsUseLinearIntensity = true;
         }
 
         protected override void Render(ScriptableRenderContext context, Camera[] cameras)
