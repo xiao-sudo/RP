@@ -4,6 +4,7 @@
 #include "../ShaderLibrary/RPCommon.hlsl"
 #include "../ShaderLibrary/RPSurface.hlsl"
 #include "../ShaderLibrary/RPLight.hlsl"
+#include "../ShaderLibrary/RPBRDF.hlsl"
 #include "../ShaderLibrary/RPLighting.hlsl"
 
 TEXTURE2D(_BaseMap);
@@ -13,6 +14,8 @@ UNITY_INSTANCING_BUFFER_START(UnityPerMaterial)
 UNITY_DEFINE_INSTANCED_PROP(float4, _BaseColor)
 UNITY_DEFINE_INSTANCED_PROP(float4, _BaseMap_ST)
 UNITY_DEFINE_INSTANCED_PROP(float, _Cutoff)
+UNITY_DEFINE_INSTANCED_PROP(float, _Metallic)
+UNITY_DEFINE_INSTANCED_PROP(float, _Smoothness)
 UNITY_INSTANCING_BUFFER_END(UnityPerMaterial)
 
 struct Attributes
@@ -64,8 +67,10 @@ half4 LitPassFragment(Varyings input) : SV_TARGET
     surface.normal = normalize(input.normal_ws);
     surface.color = base.xyz;
     surface.alpha = base.w;
+    surface.metallic = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _Metallic);
+    surface.smoothness = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _Smoothness);
 
-    float3 color = GetLighting(surface);
+    float3 color = GetLighting(surface, GetBRDF(surface));
     return float4(color, surface.alpha);
 }
 
