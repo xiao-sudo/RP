@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Diagnostics;
+using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Profiling;
 
@@ -10,13 +11,6 @@ namespace RP.Runtime
 {
     public partial class CameraRenderer
     {
-        partial void DrawUnsupportedShaders();
-
-        partial void DrawGizmos();
-
-        partial void PrepareForSceneWindow();
-
-        partial void PrepareBuffer();
 
 #if UNITY_EDITOR
         private static readonly ShaderTagId[] LEGACY_SHADER_TAG_IDS =
@@ -31,7 +25,8 @@ namespace RP.Runtime
 
         private static readonly Material ERROR_MATERIAL = new Material(Shader.Find("Hidden/InternalErrorShader"));
 
-        partial void DrawUnsupportedShaders()
+        [Conditional("UNITY_EDITOR")]
+        void DrawUnsupportedShaders()
         {
             var drawing_settings = new DrawingSettings(LEGACY_SHADER_TAG_IDS[0], new SortingSettings(m_Camera))
             {
@@ -45,7 +40,8 @@ namespace RP.Runtime
             m_Context.DrawRenderers(m_CullingResults, ref drawing_settings, ref filtering_settings);
         }
 
-        partial void DrawGizmos()
+        [Conditional("UNITY_EDITOR")]
+        void DrawGizmos()
         {
             if (Handles.ShouldRenderGizmos())
             {
@@ -54,13 +50,15 @@ namespace RP.Runtime
             }
         }
 
-        partial void PrepareForSceneWindow()
+        [Conditional("UNITY_EDITOR")]
+        void PrepareForSceneWindow()
         {
             if (CameraType.SceneView == m_Camera.cameraType)
                 ScriptableRenderContext.EmitWorldGeometryForSceneView(m_Camera);
         }
 
-        partial void PrepareBuffer()
+        [Conditional("UNITY_EDITOR")]
+        void PrepareBuffer()
         {
             Profiler.BeginSample("Editor Only");
             m_CommandBuffer.name = SampleName = m_Camera.name;
